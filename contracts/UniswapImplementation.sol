@@ -415,7 +415,7 @@ contract ExampleOracleSimple {
 
     uint public constant PERIOD = 24 hours;
 
-    IUniswapV2Pair public pair;
+    IUniswapV2Pair pair;
     address public token0;
     address public token1;
 
@@ -455,22 +455,14 @@ contract ExampleOracleSimple {
         price1CumulativeLast = price1Cumulative;
         blockTimestampLast = blockTimestamp;
     }
-    
-    function getReserves(address factory, address TokenA, address TokenB) external view returns(uint reserveA, uint reserveB){
-        
-        (reserveA, reserveB) = UniswapV2Library.getReserves(factory, TokenA, TokenB);
-    }
-    
-    function quote(uint256 AmountA, uint256 reserveA, uint256 reserveB) external pure returns(uint256 amountB){
-        
-        amountB = UniswapV2Library.quote(AmountA, reserveA, reserveB);
-    }
 
-    function getData() external view returns (uint amountOut, bool valid) {
-        amountOut = price0Average.mul(1e18).decode144();
-        if(amountOut != 0){
-            valid = true;
+    // note this will always return 0 before update has been called successfully for the first time.
+    function getData(address token, uint amountIn) external view returns (uint amountOut) {
+        if (token == token0) {
+            amountOut = price0Average.mul(amountIn).decode144();
+        } else {
+            require(token == token1, 'ExampleOracleSimple: INVALID_TOKEN');
+            amountOut = price1Average.mul(amountIn).decode144();
         }
-    }   
-
+    }
 }
