@@ -13,4 +13,7 @@ of Token A and Token B. To add reserves, Transfer tokens to this contract. Also 
 
 After doing this, you may call the update fuction to update the values.
 
-Call the getData() to get price.
+Call the getData() to get price. This function has two parameters 
+
+1. token : address of token to find value
+2. amountsIn : amount for which value is to be calculated.
