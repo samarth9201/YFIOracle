@@ -466,8 +466,11 @@ contract ExampleOracleSimple {
         amountB = UniswapV2Library.quote(AmountA, reserveA, reserveB);
     }
 
-    function getData() external view returns (uint amountOut) {
+    function getData() external view returns (uint amountOut, bool valid) {
         amountOut = price0Average.mul(1e18).decode144();
+        if(amountOut != 0){
+            valid = true;
+        }
     }   
 
 }
