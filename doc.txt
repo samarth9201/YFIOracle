@@ -1,0 +1,16 @@
+To deploy contract UniswapImplementation
+
+constructor takes three parameters :
+
+1. address of Uniswap's factory contract : 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f
+2: address of token A
+3. address of token B
+
+It is required that pair of token A and B exist and it has some reserves for both tokens, otherwise the deployment of contract will be reverted.
+
+If the pair doesn't exist, create pair by using createPair() function of Factory contract. The address returned by this function is address of UniswapV2Pair contract
+of Token A and Token B. To add reserves, Transfer tokens to this contract. Also call sync function of Pair contract for reflecting changes.
+
+After doing this, you may call the update fuction to update the values.
+
+Call the getData() to get price.
