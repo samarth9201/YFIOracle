@@ -438,7 +438,7 @@ contract ExampleOracleSimple {
         require(reserve0 != 0 && reserve1 != 0, 'ExampleOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
     }
 
-    function update() external {
+    function update() public {
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
             UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
@@ -457,7 +457,10 @@ contract ExampleOracleSimple {
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function getData(address token, uint amountIn) external view returns (uint amountOut) {
+    function getData(address token, uint amountIn) external returns (uint amountOut) {
+
+        update();
+
         if (token == token0) {
             amountOut = price0Average.mul(amountIn).decode144();
         } else {
