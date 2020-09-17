@@ -415,32 +415,61 @@ contract ExampleOracleSimple {
 
     uint public constant PERIOD = 24 hours;
 
-    IUniswapV2Pair pair;
+    IUniswapV2Pair pair1;
+    IUniswapV2Pair pair2;
+
     address public token0;
     address public token1;
+    address public token3;
 
-    uint    public price0CumulativeLast;
-    uint    public price1CumulativeLast;
+    uint    public YFIprice0CumulativeLast;
+    uint    public YFIprice1CumulativeLast;
+
+    uint    public SYFIprice0CumulativeLast;
+    uint    public SYFIprice1CumulativeLast;
+
     uint32  public blockTimestampLast;
-    FixedPoint.uq112x112 public price0Average;
-    FixedPoint.uq112x112 public price1Average;
 
-    constructor(address factory, address tokenA, address tokenB) public {
-        IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
-        pair = _pair;
-        token0 = _pair.token0();
-        token1 = _pair.token1();
-        price0CumulativeLast = _pair.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
-        price1CumulativeLast = _pair.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
+    FixedPoint.uq112x112 public YFIprice0Average;
+    FixedPoint.uq112x112 public YFIprice1Average;
+
+    FixedPoint.uq112x112 public SYFIprice0Average;
+    FixedPoint.uq112x112 public SYFIprice1Average;
+    
+
+    constructor(address factory, address _yfi, address _syfi, address _weth) public {
+        IUniswapV2Pair _pair1 = IUniswapV2Pair(UniswapV2Library.pairFor(factory, _yfi, _weth));
+        IUniswapV2Pair _pair2 = IUniswapV2Pair(UniswapV2Library.pairFor(factory, _syfi, _weth));
+
+        pair1 = _pair1;
+        pair2 = _pair2;
+
+        token0 = _yfi;
+        token1 = _syfi;
+        token3 = _weth;
+
+        YFIprice0CumulativeLast = _pair1.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
+        YFIprice1CumulativeLast = _pair1.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
+
+        SYFIprice0CumulativeLast = _pair2.price0CumulativeLast(); // fetch the current accumulated price value (1 / 0)
+        SYFIprice1CumulativeLast = _pair2.price1CumulativeLast(); // fetch the current accumulated price value (0 / 1)
+
         uint112 reserve0;
         uint112 reserve1;
-        (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
+
+        uint112 reserve2;
+        uint112 reserve3;
+
+        (reserve0, reserve1, blockTimestampLast) = _pair1.getReserves();
+        (reserve2, reserve3, blockTimestampLast) = _pair2.getReserves();
+
         require(reserve0 != 0 && reserve1 != 0, 'ExampleOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
+        require(reserve2 != 0 && reserve3 != 0, 'ExampleOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
     }
 
     function update() public {
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
-            UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
+            UniswapV2OracleLibrary.currentCumulativePrices(address(pair1));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
 
         // ensure that at least one full period has passed since the last update
@@ -448,24 +477,31 @@ contract ExampleOracleSimple {
 
         // overflow is desired, casting never truncates
         // cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
-        price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - price0CumulativeLast) / timeElapsed));
-        price1Average = FixedPoint.uq112x112(uint224((price1Cumulative - price1CumulativeLast) / timeElapsed));
+        YFIprice0Average = FixedPoint.uq112x112(uint224((price0Cumulative - YFIprice0CumulativeLast) / timeElapsed));
+        YFIprice1Average = FixedPoint.uq112x112(uint224((price1Cumulative - YFIprice1CumulativeLast) / timeElapsed));
 
-        price0CumulativeLast = price0Cumulative;
-        price1CumulativeLast = price1Cumulative;
+        YFIprice0CumulativeLast = price0Cumulative;
+        YFIprice1CumulativeLast = price1Cumulative;
+
+        (price0Cumulative, price1Cumulative, blockTimestamp) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair2));
+        timeElapsed = blockTimestamp - blockTimestampLast;
+
+        require(timeElapsed >= PERIOD, 'ExampleOracleSimple: PERIOD_NOT_ELAPSED');
+
+        SYFIprice0Average = FixedPoint.uq112x112(uint224((price0Cumulative - SYFIprice0CumulativeLast) / timeElapsed));
+        SYFIprice1Average = FixedPoint.uq112x112(uint224((price1Cumulative - SYFIprice1CumulativeLast) / timeElapsed));
+
+        SYFIprice0CumulativeLast = price0Cumulative;
+        SYFIprice1CumulativeLast = price1Cumulative;
         blockTimestampLast = blockTimestamp;
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function getData(address token, uint amountIn) external returns (uint amountOut) {
+    function getData() external returns (uint amount1, uint amount2) {
 
         update();
 
-        if (token == token0) {
-            amountOut = price0Average.mul(amountIn).decode144();
-        } else {
-            require(token == token1, 'ExampleOracleSimple: INVALID_TOKEN');
-            amountOut = price1Average.mul(amountIn).decode144();
-        }
+        amount1 = YFIprice0Average.mul(1).decode144();
+        amount2 = SYFIprice0Average.mul(1).decode144();
     }
 }
