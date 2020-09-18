@@ -486,8 +486,6 @@ contract ExampleOracleSimple {
         (price0Cumulative, price1Cumulative, blockTimestamp) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair2));
         timeElapsed = blockTimestamp - blockTimestampLast;
 
-        require(timeElapsed >= PERIOD, 'ExampleOracleSimple: PERIOD_NOT_ELAPSED');
-
         SYFIprice0Average = FixedPoint.uq112x112(uint224((price0Cumulative - SYFIprice0CumulativeLast) / timeElapsed));
         SYFIprice1Average = FixedPoint.uq112x112(uint224((price1Cumulative - SYFIprice1CumulativeLast) / timeElapsed));
 
@@ -501,7 +499,7 @@ contract ExampleOracleSimple {
 
         update();
 
-        amount1 = YFIprice0Average.mul(1).decode144();
-        amount2 = SYFIprice0Average.mul(1).decode144();
+        amount1 = YFIprice0Average.mul(10**18).decode144();
+        amount2 = SYFIprice0Average.mul(10**18).decode144();
     }
 }
