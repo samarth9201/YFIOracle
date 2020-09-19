@@ -413,7 +413,7 @@ library UniswapV2Library {
 contract ExampleOracleSimple {
     using FixedPoint for *;
 
-    uint public constant PERIOD = 24 seconds;
+    uint public constant PERIOD = 1 minutes;
 
     IUniswapV2Pair pair1;
     IUniswapV2Pair pair2;
