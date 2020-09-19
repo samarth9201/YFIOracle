@@ -413,7 +413,7 @@ library UniswapV2Library {
 contract ExampleOracleSimple {
     using FixedPoint for *;
 
-    uint public constant PERIOD = 24 hours;
+    uint public constant PERIOD = 24 seconds;
 
     IUniswapV2Pair pair1;
     IUniswapV2Pair pair2;
@@ -467,7 +467,7 @@ contract ExampleOracleSimple {
         require(reserve2 != 0 && reserve3 != 0, 'ExampleOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
     }
 
-    function update() public {
+    function update() external {
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
             UniswapV2OracleLibrary.currentCumulativePrices(address(pair1));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
@@ -486,8 +486,6 @@ contract ExampleOracleSimple {
         (price0Cumulative, price1Cumulative, blockTimestamp) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair2));
         timeElapsed = blockTimestamp - blockTimestampLast;
 
-        require(timeElapsed >= PERIOD, 'ExampleOracleSimple: PERIOD_NOT_ELAPSED');
-
         SYFIprice0Average = FixedPoint.uq112x112(uint224((price0Cumulative - SYFIprice0CumulativeLast) / timeElapsed));
         SYFIprice1Average = FixedPoint.uq112x112(uint224((price1Cumulative - SYFIprice1CumulativeLast) / timeElapsed));
 
@@ -497,11 +495,9 @@ contract ExampleOracleSimple {
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function getData() external returns (uint amount1, uint amount2) {
+    function getData() external view returns (uint amount1, uint amount2) {
 
-        update();
-
-        amount1 = YFIprice0Average.mul(1).decode144();
-        amount2 = SYFIprice0Average.mul(1).decode144();
+        amount1 = YFIprice0Average.mul(10**18).decode144();
+        amount2 = SYFIprice0Average.mul(10**18).decode144();
     }
 }
