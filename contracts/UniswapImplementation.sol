@@ -495,9 +495,12 @@ contract ExampleOracleSimple {
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
-    function getData() external view returns (uint amount1, uint amount2) {
+    function getData() external view returns (uint amount1, uint amount2, uint amount3, uint amount4) {
 
         amount1 = YFIprice0Average.mul(10**18).decode144();
         amount2 = SYFIprice0Average.mul(10**18).decode144();
+
+        amount3 = YFIprice1Average.mul(10**18).decode144();
+        amount4 = YFIprice1Average.mul(10**18).decode144();
     }
 }
