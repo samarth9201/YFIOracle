@@ -428,7 +428,8 @@ contract ExampleOracleSimple {
     uint    public SYFIprice0CumulativeLast;
     uint    public SYFIprice1CumulativeLast;
 
-    uint32  public blockTimestampLast;
+    uint32  public blockTimestampLastYFI;
+    uint32  public blockTimestampLastSYFI;
 
     FixedPoint.uq112x112 public YFIprice0Average;
     FixedPoint.uq112x112 public YFIprice1Average;
@@ -460,8 +461,8 @@ contract ExampleOracleSimple {
         uint112 reserve2;
         uint112 reserve3;
 
-        (reserve0, reserve1, blockTimestampLast) = _pair1.getReserves();
-        (reserve2, reserve3, blockTimestampLast) = _pair2.getReserves();
+        (reserve0, reserve1, blockTimestampLastYFI) = _pair1.getReserves();
+        (reserve2, reserve3, blockTimestampLastSYFI) = _pair2.getReserves();
 
         require(reserve0 != 0 && reserve1 != 0, 'ExampleOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
         require(reserve2 != 0 && reserve3 != 0, 'ExampleOracleSimple: NO_RESERVES'); // ensure that there's liquidity in the pair
@@ -470,7 +471,7 @@ contract ExampleOracleSimple {
     function update() external {
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
             UniswapV2OracleLibrary.currentCumulativePrices(address(pair1));
-        uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
+        uint32 timeElapsed = blockTimestamp - blockTimestampLastYFI; // overflow is desired
 
         // ensure that at least one full period has passed since the last update
         require(timeElapsed >= PERIOD, 'ExampleOracleSimple: PERIOD_NOT_ELAPSED');
@@ -482,16 +483,17 @@ contract ExampleOracleSimple {
 
         YFIprice0CumulativeLast = price0Cumulative;
         YFIprice1CumulativeLast = price1Cumulative;
+        blockTimestampLastYFI = blockTimestamp;
 
         (price0Cumulative, price1Cumulative, blockTimestamp) = UniswapV2OracleLibrary.currentCumulativePrices(address(pair2));
-        timeElapsed = blockTimestamp - blockTimestampLast;
+        timeElapsed = blockTimestamp - blockTimestampLastSYFI;
 
         SYFIprice0Average = FixedPoint.uq112x112(uint224((price0Cumulative - SYFIprice0CumulativeLast) / timeElapsed));
         SYFIprice1Average = FixedPoint.uq112x112(uint224((price1Cumulative - SYFIprice1CumulativeLast) / timeElapsed));
 
         SYFIprice0CumulativeLast = price0Cumulative;
         SYFIprice1CumulativeLast = price1Cumulative;
-        blockTimestampLast = blockTimestamp;
+        blockTimestampLastSYFI = blockTimestamp;
     }
 
     // note this will always return 0 before update has been called successfully for the first time.
