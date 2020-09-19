@@ -501,6 +501,6 @@ contract ExampleOracleSimple {
         amount2 = SYFIprice0Average.mul(10**18).decode144();
 
         amount3 = YFIprice1Average.mul(10**18).decode144();
-        amount4 = YFIprice1Average.mul(10**18).decode144();
+        amount4 = SYFIprice1Average.mul(10**18).decode144();
     }
 }
